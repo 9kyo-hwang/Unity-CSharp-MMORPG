@@ -13,6 +13,7 @@
 
 ### Part 4: 게임 서버
 - [강의 영상](https://www.inflearn.com/course/%EC%9C%A0%EB%8B%88%ED%8B%B0-mmorpg-%EA%B0%9C%EB%B0%9C-part4)
+- [레포지토리](https://github.com/9kyo-hwang/Unity-CSharp-MMORPG/tree/main/Part%204%20-%20GameServer)
 
 ### Part 5: 데이터베이스
 - [강의 영상](https://www.inflearn.com/course/%EC%9C%A0%EB%8B%88%ED%8B%B0-mmorpg-%EA%B0%9C%EB%B0%9C-part5)
