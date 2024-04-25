@@ -26,7 +26,6 @@ public class PacketManager
 		_handler.Add((ushort)PacketID.S_PlayerList, PacketHandler.S_PlayerListHandler);
 		_funcs.Add((ushort)PacketID.S_BroadcastMove, MakePacket<S_BroadcastMove>);
 		_handler.Add((ushort)PacketID.S_BroadcastMove, PacketHandler.S_BroadcastMoveHandler);
-
 	}
 
 	public void OnRecvPacket(PacketSession session, ArraySegment<byte> buffer, Action<PacketSession, IPacket> onRecv = null)

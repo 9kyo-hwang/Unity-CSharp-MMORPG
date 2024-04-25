@@ -24,4 +24,14 @@ public class PacketQueue
             return _queue.Count == 0 ? null : _queue.Dequeue();
         }
     }
+
+    public List<IPacket> Clear()
+    {
+        lock (_lock)
+        {
+            var elements = _queue.ToList();
+            _queue.Clear();
+            return elements;
+        }
+    }
 }
