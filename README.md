@@ -10,6 +10,7 @@
 
 ### Part 3: 유니티 엔진
 - [강의 영상](https://www.inflearn.com/course/mmorpg-%EC%9C%A0%EB%8B%88%ED%8B%B0)
+- [레포지토리](https://github.com/9kyo-hwang/Unity-CSharp-MMORPG/tree/main/Part%203%20-%20UnityEngine)
 
 ### Part 4: 게임 서버
 - [강의 영상](https://www.inflearn.com/course/%EC%9C%A0%EB%8B%88%ED%8B%B0-mmorpg-%EA%B0%9C%EB%B0%9C-part4)
@@ -20,6 +21,7 @@
 
 ### Part 6: 웹 서버
 - [강의 영상](https://www.inflearn.com/course/%EC%9C%A0%EB%8B%88%ED%8B%B0-mmorpg-%EA%B0%9C%EB%B0%9C-part6)
+- [레포지토리](https://github.com/9kyo-hwang/Unity-CSharp-MMORPG/tree/main/Part%206%20-%20WebServer)
 
 ### Part 7: MMO 컨텐츠 구현(Unity + C# 서버 연동 기초)
 - [강의 영상](https://www.inflearn.com/course/%EC%9C%A0%EB%8B%88%ED%8B%B0-mmorpg-%EA%B0%9C%EB%B0%9C-part7)
