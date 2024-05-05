@@ -14,6 +14,7 @@ public class Player
     public int Level { get; set; }
     public int Hp { get; set; }
     public int Attack { get; set; }
+    public List<int>? Items { get; set; } = new List<int>();
 }
 
 class Program
@@ -39,6 +40,11 @@ class Program
                 Hp = rand.Next(100, 1001),
                 Attack = rand.Next(5, 51)
             };
+
+            for (int j = 0; j < 5; ++j)
+            {
+                player.Items!.Add(rand.Next(1, 101));
+            }
             
             _players.Add(player);
         }
@@ -62,13 +68,47 @@ class Program
                 Console.WriteLine($"{p.Level}, {p.Hp}");
             }
         }
+
+        // nested from
+        {
+            var items = from player in _players
+                from item in player.Items
+                where item < 30
+                select new { player, item };
+
+            var itemList = items.ToList();
+        }
+
+        // grouping
+        {
+            var playersByLevel = from p in _players
+                group p by p.Level
+                into g
+                orderby g.Key
+                select new { g.Key, Players = g };
+        }
+
+        // join
+        {
+            List<int> levels = new List<int> { 2, 6, 10 };
+
+            var playerLevels = from p in _players
+                join l in levels
+                    on p.Level equals l
+                select p;
+        }
+        
+        // std operator
+        {
+            var players = _players.Where(player => player is { ClassType: ClassType.Knight, Level: >= 50 })
+                .OrderBy(player => player.Level).Select(player => player);
+        }
     }
 
-    static List<Player> GetKnights(int level = 50)
+    static IEnumerable<Player> GetKnights(int level = 50)
     {
-        List<Player> players = _players.Where(player => player.ClassType == ClassType.Knight && player.Level >= level).ToList();
-        players.Sort((player1, player2) => player1.Level - player2.Level);
-        return players;
+        return _players.Where(player => player is { ClassType: ClassType.Knight, Level: >= 50 })
+            .OrderBy(player => player.Level).Select(player => player);
     }
 
     static IOrderedEnumerable<Player> GetKnightsLinq(int level = 50)
