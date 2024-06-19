@@ -4,6 +4,15 @@ using UnityEngine;
 
 public class Define
 {
+    public enum EMoveDir
+    {
+        None,
+        Up,
+        Down,
+        Left,
+        Right
+    }
+    
     public enum Scene
     {
         Unknown,

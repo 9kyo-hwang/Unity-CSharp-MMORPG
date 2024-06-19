@@ -7443,7 +7443,6 @@ GameObject:
   - component: {fileID: 1947594052046006755}
   - component: {fileID: 428751095312307401}
   - component: {fileID: 6877086702980655447}
-  - component: {fileID: 1765603381882069294}
   m_Layer: 0
   m_Name: Tilemap_Collision
   m_TagString: Untagged
@@ -9087,20 +9086,6 @@ TilemapRenderer:
   m_Mode: 0
   m_DetectChunkCullingBounds: 0
   m_MaskInteraction: 0
---- !u!114 &1765603381882069294
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4728305141251488765}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9f265bc386d2e684485c4c8d512078b8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  tilemap: {fileID: 428751095312307401}
-  tile: {fileID: 11400000, guid: f6f1e50f5e3b1fc48b4397aacd99a73b, type: 2}
 --- !u!1 &6447325893375176778
 GameObject:
   m_ObjectHideFlags: 0
