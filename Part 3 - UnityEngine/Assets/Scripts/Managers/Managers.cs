@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class Managers : MonoBehaviour
 {
-    static Managers s_instance; // 유일성이 보장된다
-    static Managers Instance { get { Init(); return s_instance; } } // 유일한 매니저를 갖고온다
+    static Managers _instance; // 유일성이 보장된다
+    static Managers Instance { get { Init(); return _instance; } } // 유일한 매니저를 갖고온다
 
 	#region Contents
 	GameManagerEx _game = new GameManagerEx();
@@ -23,14 +23,15 @@ public class Managers : MonoBehaviour
     SoundManager _sound = new SoundManager();
     UIManager _ui = new UIManager();
 
-    public static DataManager Data { get { return Instance._data; } }
-    public static InputManager Input { get { return Instance._input; } }
-    public static PoolManager Pool { get { return Instance._pool; } }
-    public static ResourceManager Resource { get { return Instance._resource; } }
-    public static SceneManagerEx Scene { get { return Instance._scene; } }
-    public static SoundManager Sound { get { return Instance._sound; } }
-    public static UIManager UI { get { return Instance._ui; } }
-	#endregion
+    public static DataManager Data => Instance._data;
+    public static InputManager Input => Instance._input;
+    public static PoolManager Pool => Instance._pool;
+    public static ResourceManager Resource => Instance._resource;
+    public static SceneManagerEx Scene => Instance._scene;
+    public static SoundManager Sound => Instance._sound;
+    public static UIManager UI => Instance._ui;
+
+    #endregion
 
 	void Start()
     {
@@ -44,7 +45,7 @@ public class Managers : MonoBehaviour
 
     static void Init()
     {
-        if (s_instance != null) return;
+        if (_instance != null) return;
         
         GameObject go = GameObject.Find("@Managers");
         if (go == null)
@@ -54,11 +55,11 @@ public class Managers : MonoBehaviour
         }
 
         DontDestroyOnLoad(go);
-        s_instance = go.GetComponent<Managers>();
+        _instance = go.GetComponent<Managers>();
 
-        s_instance._data.Init();
-        s_instance._pool.Init();
-        s_instance._sound.Init();
+        _instance._data.Init();
+        _instance._pool.Init();
+        _instance._sound.Init();
     }
 
     public static void Clear()

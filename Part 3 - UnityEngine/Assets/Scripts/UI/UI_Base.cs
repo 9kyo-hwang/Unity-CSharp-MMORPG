@@ -35,8 +35,7 @@ public abstract class UI_Base : MonoBehaviour
 
 	protected T Get<T>(int idx) where T : UnityEngine.Object
 	{
-		UnityEngine.Object[] objects = null;
-		if (Objects.TryGetValue(typeof(T), out objects) == false)
+		if (Objects.TryGetValue(typeof(T), out var objects) == false)
 			return null;
 
 		return objects[idx] as T;
@@ -61,6 +60,8 @@ public abstract class UI_Base : MonoBehaviour
 				evt.OnDragHandler -= action;
 				evt.OnDragHandler += action;
 				break;
+			default:
+				throw new ArgumentOutOfRangeException(nameof(type), type, null);
 		}
 	}
 }

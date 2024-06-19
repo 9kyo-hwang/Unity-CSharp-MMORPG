@@ -18,7 +18,7 @@ public class InputManager
             return;
 
         if (Input.anyKey && KeyAction != null)
-				KeyAction.Invoke();
+            KeyAction.Invoke();
 
         if (MouseAction == null) return;
         
