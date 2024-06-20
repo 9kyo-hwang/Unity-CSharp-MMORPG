@@ -6,6 +6,8 @@ using static Define;
 
 public class PlayerController : Controller
 {
+    private Coroutine _coroutineAttack;
+    
     protected override void Awake()
     {
         base.Awake();
@@ -18,7 +20,21 @@ public class PlayerController : Controller
     
     protected override void Update()
     {
-        SetMoveDir();
+        switch (State)
+        {
+            case EState.Idle:
+                SetMoveDir();
+                OnIdle();
+                break;
+            case EState.Move:
+                SetMoveDir();
+                break;
+            case EState.Skill:
+                break;
+            case EState.Dead:
+                break;
+        }
+        
         base.Update();
     }
 
@@ -53,5 +69,31 @@ public class PlayerController : Controller
         {
             CurMoveDir = EMoveDir.None;
         }
+    }
+
+    protected override void OnIdle()
+    {
+        base.OnIdle();
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            State = EState.Skill;
+            _coroutineAttack = StartCoroutine(nameof(AttackRoutine));
+        }
+    }
+
+    private IEnumerator AttackRoutine()
+    {
+        // 피격 판정
+        GameObject target = Managers.Object.Find(GetFrontPosition());
+        if (target)
+        {
+            Debug.Log(target.name);
+        }
+        
+        // 쿨타임
+        yield return new WaitForSeconds(0.5f);
+        State = EState.Idle;
+        _coroutineAttack = null;
     }
 }

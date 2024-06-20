@@ -10,7 +10,6 @@ public class Controller : MonoBehaviour
     public Vector3Int Position { get; set; } = Vector3Int.zero;
     
     private EState _state = EState.Idle;
-
     public EState State
     {
         get => _state;
@@ -36,6 +35,28 @@ public class Controller : MonoBehaviour
         }
     }
 
+    public Vector3Int GetFrontPosition()
+    {
+        Vector3Int position = Position;
+        switch(_prevMoveDir)
+        {
+            case EMoveDir.Up:
+                position += Vector3Int.up;
+                break;
+            case EMoveDir.Down:
+                position += Vector3Int.down;
+                break;
+            case EMoveDir.Left:
+                position += Vector3Int.left;
+                break;
+            case EMoveDir.Right:
+                position += Vector3Int.right;
+                break;
+        }
+
+        return position;
+    }
+
     private readonly Vector3 _cellOffset = new Vector3(0.5f, 0, 0);
 
     protected virtual void Awake()
@@ -52,8 +73,20 @@ public class Controller : MonoBehaviour
     
     protected virtual void Update()
     {
-        SetPosition();
-        Move();
+        // 조건이 복잡해짐에 따라, State 별로 Update에서 수행해야 할 함수를 구분해서 적용
+        switch (State)
+        {
+            case EState.Idle:
+                OnIdle();
+                break;
+            case EState.Move:
+                OnMove();
+                break;
+            case EState.Skill:
+                break;
+            case EState.Dead:
+                break;
+        }
     }
 
     protected virtual void LateUpdate()
@@ -111,7 +144,25 @@ public class Controller : MonoBehaviour
                 }
                 break;
             case EState.Skill:
-                // TODO: Dead Skill Animation Play
+                switch (_prevMoveDir)
+                {
+                    case EMoveDir.Up:
+                        Animator.Play("ATTACK_BACK");
+                        Sprite.flipX = false;
+                        break;
+                    case EMoveDir.Down:
+                        Animator.Play("ATTACK_FRONT");
+                        Sprite.flipX = false;
+                        break;
+                    case EMoveDir.Left:
+                        Animator.Play("ATTACK_SIDE");
+                        Sprite.flipX = true;
+                        break;
+                    case EMoveDir.Right:  // None에 대해서는 Right와 동일한 처리
+                        Animator.Play("ATTACK_SIDE");
+                        Sprite.flipX = false;
+                        break;
+                }
                 break;
             case EState.Dead:
                 break;
@@ -119,16 +170,15 @@ public class Controller : MonoBehaviour
     }
 
     // 이동 가능할 때 실제 좌표 조정
-    void SetPosition()
+    protected virtual void OnIdle()
     {
         // 움직이는 도중에는 애니메이션만 출력함
-        if (State != EState.Idle || _curMoveDir == EMoveDir.None)
+        if (_curMoveDir == EMoveDir.None)
         {
             return;
         }
         
         // 실제 플레이어 좌표는 한 번만 옮김
-
         Vector3Int destination = Position;
         switch (_curMoveDir)
         {
@@ -154,13 +204,8 @@ public class Controller : MonoBehaviour
     }
 
     // 캐릭터가 서서히 움직이는 로직 처리
-    void Move()
+    protected virtual void OnMove()
     {
-        if (State != EState.Move)
-        {
-            return;
-        }
-        
         // 클라이언트에서 캐릭터가 서서히 움직이는 모습 구현
         Vector3 destination = Managers.Map.ActiveMap.CellToWorld(Position) + _cellOffset;
         Vector3 moveDir = destination - transform.position;
@@ -181,5 +226,15 @@ public class Controller : MonoBehaviour
             transform.position += moveDir.normalized * movementSpeed * Time.deltaTime;
             State = EState.Move;
         }
+    }
+
+    protected virtual void OnSkill()
+    {
+        
+    }
+
+    protected virtual void OnDead()
+    {
+        
     }
 }
