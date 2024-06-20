@@ -8,6 +8,9 @@ public class AIController : Controller
     protected override void Awake()
     {
         base.Awake();
+        
+        State = EState.Idle;
+        CurMoveDir = EMoveDir.None;
     }
 
     protected override void Start()

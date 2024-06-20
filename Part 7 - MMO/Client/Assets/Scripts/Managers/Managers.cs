@@ -10,7 +10,9 @@ public class Managers : MonoBehaviour
 	#region Contents
 
 	private MapManager _map = new MapManager();
+	private ObjectManager _object = new ObjectManager();
 	public static MapManager Map => Instance._map;
+	public static ObjectManager Object => Instance._object;
 	
 	#endregion
 

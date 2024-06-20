@@ -7,8 +7,8 @@ public class Controller : MonoBehaviour
     [SerializeField] protected float movementSpeed = 5.0f;
     protected Animator Animator;
     protected SpriteRenderer Sprite;
-    protected Vector3Int Position = Vector3Int.zero;
-
+    public Vector3Int Position { get; set; } = Vector3Int.zero;
+    
     private EState _state = EState.Idle;
 
     public EState State
@@ -42,14 +42,12 @@ public class Controller : MonoBehaviour
     {
         Animator = GetComponent<Animator>();
         Sprite = GetComponent<SpriteRenderer>();
-        
-        // 초기 위치 세팅
-        transform.position = Managers.Map.ActiveMap.CellToWorld(Position) + _cellOffset;
     }
 
     protected virtual void Start()
     {
-        
+        // 초기 위치 세팅
+        transform.position = Managers.Map.ActiveMap.CellToWorld(Position) + _cellOffset;
     }
     
     protected virtual void Update()
@@ -148,13 +146,11 @@ public class Controller : MonoBehaviour
                 break;
         }
 
-        if (!Managers.Map.CanGo(destination))
-        {
-            return;
-        }
-
-        Position = destination;
         State = EState.Move;
+        if (Managers.Map.CanGo(destination) && !Managers.Object.Find(destination))
+        {
+            Position = destination;
+        }
     }
 
     // 캐릭터가 서서히 움직이는 로직 처리
