@@ -7,7 +7,6 @@ using static Define;
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private float movementSpeed = 5.0f;
-    [SerializeField] private Grid map;  // TODO: 추후 매니저에서 Player에 Map 정보를 넘겨주는 식으로 변경
     private Animator _animator;
     
     private EMoveDir _moveDir = EMoveDir.None;
@@ -43,8 +42,6 @@ public class PlayerController : MonoBehaviour
                             _animator.Play("IDLE_SIDE");
                             transform.localScale = new Vector3(1, 1, 1);
                             break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
                     }
                     break;
                 case EMoveDir.Up:
@@ -63,8 +60,6 @@ public class PlayerController : MonoBehaviour
                     _animator.Play("WALK_SIDE");
                     transform.localScale = new Vector3(1, 1, 1);
                     break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(value), value, null);
             }
 
             _moveDir = value;
@@ -78,7 +73,7 @@ public class PlayerController : MonoBehaviour
         _animator = GetComponent<Animator>();
         
         // 초기 위치 세팅
-        transform.position = map.CellToWorld(_position) + _cellOffset;
+        transform.position = Managers.Map.ActiveMap.CellToWorld(_position) + _cellOffset;
     }
 
     void Start()
@@ -91,6 +86,12 @@ public class PlayerController : MonoBehaviour
         SetMoveDir();
         SetPosition();
         Move();
+    }
+
+    private void LateUpdate()
+    {
+        // 2D라서 기본적으로 Z축은 -10 설정
+        Camera.main.transform.position = new Vector3(transform.position.x, transform.position.y, -10);
     }
 
     // 키보드 입력에 따른 방향 정의
@@ -122,35 +123,37 @@ public class PlayerController : MonoBehaviour
     void SetPosition()
     {
         // 움직이는 도중에는 애니메이션만 출력함
-        if (_isMoving)
+        if (_isMoving || _moveDir == EMoveDir.None)
         {
             return;
         }
         
         // 실제 플레이어 좌표는 한 번만 옮김
+
+        Vector3Int destination = _position;
         switch (_moveDir)
         {
             case EMoveDir.Up:
-                _position += Vector3Int.up;
-                _isMoving = true;
+                destination += Vector3Int.up;
                 break;
             case EMoveDir.Down:
-                _position += Vector3Int.down;
-                _isMoving = true;
+                destination += Vector3Int.down;
                 break;
             case EMoveDir.Left:
-                _position += Vector3Int.left;
-                _isMoving = true;
+                destination += Vector3Int.left;
                 break;
             case EMoveDir.Right:
-                _position += Vector3Int.right;
-                _isMoving = true;
-                break;
-            case EMoveDir.None:
-                break;
-            default:
+                destination += Vector3Int.right;
                 break;
         }
+
+        if (!Managers.Map.CanGo(destination))
+        {
+            return;
+        }
+
+        _position = destination;
+        _isMoving = true;
     }
 
     // 캐릭터가 서서히 움직이는 로직 처리
@@ -162,7 +165,7 @@ public class PlayerController : MonoBehaviour
         }
         
         // 클라이언트에서 캐릭터가 서서히 움직이는 모습 구현
-        Vector3 destination = map.CellToWorld(_position) + _cellOffset;
+        Vector3 destination = Managers.Map.ActiveMap.CellToWorld(_position) + _cellOffset;
         Vector3 moveDir = destination - transform.position;
         
         // 도착 여부 체크

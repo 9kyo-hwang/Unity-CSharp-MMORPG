@@ -14,25 +14,26 @@ public class MapEditor
     {
         foreach (GameObject map in Resources.LoadAll<GameObject>("Prefabs/Map"))
         {
+            Tilemap baseMap = Util.FindChild<Tilemap>(map, "Tilemap_Base", true);
             Tilemap collisionMap = Util.FindChild<Tilemap>(map, "Tilemap_Collision", true);
-            if (!collisionMap)
+            if (!baseMap || !collisionMap)
             {
-                Debug.Log($"Cannot Find Tilemap_Collision in {map.gameObject.name}!");
+                Debug.Log($"Cannot Find Tilemap in {map.gameObject.name}!");
                 continue;
             }
         
             // File 생성.
             using var writer = File.CreateText($"Assets/Resources/Map/{map.gameObject.name}.txt");
 
-            var xMax = collisionMap.cellBounds.xMax;
-            var xMin = collisionMap.cellBounds.xMin;
-            var yMax = collisionMap.cellBounds.yMax;
-            var yMin = collisionMap.cellBounds.yMin;
+            var xMax = baseMap.cellBounds.xMax;
+            var xMin = baseMap.cellBounds.xMin;
+            var yMax = baseMap.cellBounds.yMax;
+            var yMin = baseMap.cellBounds.yMin;
 
-            writer.WriteLine($"{xMin} {xMax} {yMin} {yMax}");
-            for (int y = yMax; y >= yMin; --y)
+            writer.Write($"{xMin}\n{xMax}\n{yMin}\n{yMax}\n");
+            for (int y = yMax - 1; y >= yMin; --y)
             {
-                for (int x = xMin; x <= xMax; ++x)
+                for (int x = xMin; x < xMax; ++x)
                 {
                     writer.Write(collisionMap.GetTile(new Vector3Int(x, y, 0)) ? "1" : "0");
                 }
