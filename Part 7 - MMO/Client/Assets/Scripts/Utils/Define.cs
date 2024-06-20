@@ -4,6 +4,14 @@ using UnityEngine;
 
 public class Define
 {
+    public enum EState
+    {
+        Idle,
+        Move,
+        Skill,
+        Dead,
+    }
+    
     public enum EMoveDir
     {
         None,

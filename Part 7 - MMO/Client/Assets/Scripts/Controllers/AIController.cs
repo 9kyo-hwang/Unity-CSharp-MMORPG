@@ -1,10 +1,9 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using static Define;
 
-public class PlayerController : Controller
+public class AIController : Controller
 {
     protected override void Awake()
     {
@@ -15,22 +14,18 @@ public class PlayerController : Controller
     {
         base.Start();
     }
-    
+
     protected override void Update()
     {
-        SetMoveDir();
         base.Update();
     }
 
     protected override void LateUpdate()
     {
         base.LateUpdate();
-        
-        // 2D라서 기본적으로 Z축은 -10 설정
-        Camera.main.transform.position = new Vector3(transform.position.x, transform.position.y, -10);
     }
-
-    // 키보드 입력에 따른 방향 정의
+    
+    // TODO: 추후 키보드 입력이 아닌 AI에 의해 방향을 결정하도록 코드 변경
     void SetMoveDir()
     {
         if (Input.GetKey(KeyCode.W))
