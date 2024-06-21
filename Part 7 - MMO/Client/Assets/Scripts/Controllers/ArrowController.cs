@@ -1,0 +1,89 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using static Define;
+
+public class ArrowController : Controller
+{
+    protected override void Awake()
+    {
+        base.Awake();
+    }
+
+    protected override void Start()
+    {
+        base.Start();
+
+        switch (_prevMoveDir)
+        {
+            case EMoveDir.Up:
+                transform.rotation = Quaternion.Euler(0, 0, 0);
+                break;
+            case EMoveDir.Down:
+                transform.rotation = Quaternion.Euler(0, 0, -180);
+                break;
+            case EMoveDir.Left:
+                transform.rotation = Quaternion.Euler(0, 0, 90);
+                break;
+            case EMoveDir.Right:
+                transform.rotation = Quaternion.Euler(0, 0, -90);
+                break;
+        }
+    }
+
+    protected override void SetAnimation()
+    {
+        
+    }
+
+    protected override void OnIdle()
+    {
+        if (_curMoveDir == EMoveDir.None)
+        {
+            return;
+        }
+        
+        Vector3Int destination = Position;
+        switch (_curMoveDir)
+        {
+            case EMoveDir.Up:
+                destination += Vector3Int.up;
+                break;
+            case EMoveDir.Down:
+                destination += Vector3Int.down;
+                break;
+            case EMoveDir.Left:
+                destination += Vector3Int.left;
+                break;
+            case EMoveDir.Right:
+                destination += Vector3Int.right;
+                break;
+        }
+
+        State = EState.Move;
+        if (Managers.Map.CanGo(destination))
+        {
+            GameObject target = Managers.Object.Find(destination);
+            if (!target)
+            {
+                Position = destination;
+            }
+            else
+            {
+                Controller controller = target.GetComponent<Controller>();
+                if (controller)
+                {
+                    controller.OnDamaged();
+                }
+                
+                // Arrow Object Remove
+                Managers.Resource.Destroy(gameObject);
+            }
+        }
+        else
+        {
+            Managers.Resource.Destroy(gameObject);
+        }
+    }
+}

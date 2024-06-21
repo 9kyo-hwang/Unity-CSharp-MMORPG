@@ -7,6 +7,7 @@ using static Define;
 public class PlayerController : Controller
 {
     private Coroutine _coroutineAttack;
+    private bool _isArrowAttack = false;
     
     protected override void Awake()
     {
@@ -71,6 +72,79 @@ public class PlayerController : Controller
         }
     }
 
+    protected override void SetAnimation()
+    {
+        switch (State)
+        {
+            case EState.Idle:
+                switch (_prevMoveDir)
+                {
+                    case EMoveDir.Up:
+                        Animator.Play("IDLE_BACK");
+                        Sprite.flipX = false;
+                        break;
+                    case EMoveDir.Down:
+                        Animator.Play("IDLE_FRONT");
+                        Sprite.flipX = false;
+                        break;
+                    case EMoveDir.Left:
+                        Animator.Play("IDLE_SIDE");
+                        Sprite.flipX = true;
+                        break;
+                    case EMoveDir.Right:
+                    case EMoveDir.None:  // None에 대해서는 Right와 동일한 처리
+                        Animator.Play("IDLE_SIDE");
+                        Sprite.flipX = false;
+                        break;
+                }
+                break;
+            case EState.Move:
+                switch (_curMoveDir)
+                {
+                    case EMoveDir.Up:
+                        Animator.Play("WALK_BACK");
+                        Sprite.flipX = false;
+                        break;
+                    case EMoveDir.Down:
+                        Animator.Play("WALK_FRONT");
+                        Sprite.flipX = false;
+                        break;
+                    case EMoveDir.Left:
+                        Animator.Play("WALK_SIDE");
+                        Sprite.flipX = true;
+                        break;
+                    case EMoveDir.Right:
+                        Animator.Play("WALK_SIDE");
+                        Sprite.flipX = false;
+                        break;
+                }
+                break;
+            case EState.Skill:
+                switch (_prevMoveDir)
+                {
+                    case EMoveDir.Up:
+                        Animator.Play(_isArrowAttack ? "ATTACK_WEAPON_BACK" : "ATTACK_BACK");
+                        Sprite.flipX = false;
+                        break;
+                    case EMoveDir.Down:
+                        Animator.Play(_isArrowAttack ? "ATTACK_WEAPON_FRONT" : "ATTACK_FRONT");
+                        Sprite.flipX = false;
+                        break;
+                    case EMoveDir.Left:
+                        Animator.Play(_isArrowAttack ? "ATTACK_WEAPON_SIDE" : "ATTACK_SIDE");
+                        Sprite.flipX = true;
+                        break;
+                    case EMoveDir.Right:  // None에 대해서는 Right와 동일한 처리
+                        Animator.Play(_isArrowAttack ? "ATTACK_WEAPON_SIDE" : "ATTACK_SIDE");
+                        Sprite.flipX = false;
+                        break;
+                }
+                break;
+            case EState.Dead:
+                break;
+        }
+    }
+
     protected override void OnIdle()
     {
         base.OnIdle();
@@ -78,7 +152,8 @@ public class PlayerController : Controller
         if (Input.GetKeyDown(KeyCode.Space))
         {
             State = EState.Skill;
-            _coroutineAttack = StartCoroutine(nameof(AttackRoutine));
+            //_coroutineAttack = StartCoroutine(nameof(AttackRoutine));
+            _coroutineAttack = StartCoroutine(nameof(ShootArrowRoutine));
         }
     }
 
@@ -88,10 +163,29 @@ public class PlayerController : Controller
         GameObject target = Managers.Object.Find(GetFrontPosition());
         if (target)
         {
-            Debug.Log(target.name);
+            Controller controller = target.GetComponent<Controller>();
+            if (controller)
+            {
+                controller.OnDamaged();
+            }
         }
         
         // 쿨타임
+        _isArrowAttack = false;
+        yield return new WaitForSeconds(0.5f);
+        State = EState.Idle;
+        _coroutineAttack = null;
+    }
+
+    private IEnumerator ShootArrowRoutine()
+    {
+        GameObject arrow = Managers.Resource.Instantiate("Pawn/Arrow");
+        ArrowController controller = arrow.GetComponent<ArrowController>();
+        controller.CurMoveDir = _prevMoveDir;
+        controller.Position = Position;
+        
+        // 쿨타임
+        _isArrowAttack = true;
         yield return new WaitForSeconds(0.5f);
         State = EState.Idle;
         _coroutineAttack = null;

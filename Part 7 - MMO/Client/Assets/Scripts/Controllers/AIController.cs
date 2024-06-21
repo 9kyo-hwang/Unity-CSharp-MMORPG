@@ -52,4 +52,19 @@ public class AIController : Controller
             CurMoveDir = EMoveDir.None;
         }
     }
+
+    public override void OnDamaged()
+    {
+        base.OnDamaged();
+        
+        // Effect Play
+        GameObject effect = Managers.Resource.Instantiate("Effect/DeathEffect");
+        effect.transform.position = transform.position;
+        effect.GetComponent<Animator>().Play("START");
+        Destroy(effect, 0.5f);  // 0.5초 후 Destroy
+                
+        // Target Object Remove
+        Managers.Object.Remove(gameObject);
+        Managers.Resource.Destroy(gameObject);
+    }
 }

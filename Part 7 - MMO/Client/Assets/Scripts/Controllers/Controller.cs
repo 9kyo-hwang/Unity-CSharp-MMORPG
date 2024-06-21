@@ -9,7 +9,7 @@ public class Controller : MonoBehaviour
     protected SpriteRenderer Sprite;
     public Vector3Int Position { get; set; } = Vector3Int.zero;
     
-    private EState _state = EState.Idle;
+    protected EState _state = EState.Idle;
     public EState State
     {
         get => _state;
@@ -20,8 +20,8 @@ public class Controller : MonoBehaviour
             SetAnimation();
         }
     }
-    private EMoveDir _curMoveDir = EMoveDir.Down;
-    private EMoveDir _prevMoveDir = EMoveDir.Down;
+    protected EMoveDir _curMoveDir = EMoveDir.Down;
+    protected EMoveDir _prevMoveDir = EMoveDir.Down;
     public EMoveDir CurMoveDir
     {
         get => _curMoveDir;
@@ -234,6 +234,11 @@ public class Controller : MonoBehaviour
     }
 
     protected virtual void OnDead()
+    {
+        
+    }
+
+    public virtual void OnDamaged()
     {
         
     }
