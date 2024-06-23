@@ -26,8 +26,8 @@ public class GameScene : BaseScene
             // 랜덤 위치 스폰
             Vector3Int position = new Vector3Int
             {
-                x = Random.Range(-20, 20),
-                y = Random.Range(-10, 10)
+                x = Random.Range(-16, 16),
+                y = Random.Range(-9, 9)
             };
 
             monster.GetComponent<AIController>().Position = position;

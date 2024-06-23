@@ -25,7 +25,6 @@ public class PlayerController : Controller
         {
             case EState.Idle:
                 SetMoveDir();
-                OnIdle();
                 break;
             case EState.Move:
                 SetMoveDir();
@@ -77,7 +76,7 @@ public class PlayerController : Controller
         switch (State)
         {
             case EState.Idle:
-                switch (_prevMoveDir)
+                switch (prevMoveDir)
                 {
                     case EMoveDir.Up:
                         Animator.Play("IDLE_BACK");
@@ -99,7 +98,7 @@ public class PlayerController : Controller
                 }
                 break;
             case EState.Move:
-                switch (_curMoveDir)
+                switch (curMoveDir)
                 {
                     case EMoveDir.Up:
                         Animator.Play("WALK_BACK");
@@ -120,7 +119,7 @@ public class PlayerController : Controller
                 }
                 break;
             case EState.Skill:
-                switch (_prevMoveDir)
+                switch (prevMoveDir)
                 {
                     case EMoveDir.Up:
                         Animator.Play(_isArrowAttack ? "ATTACK_WEAPON_BACK" : "ATTACK_BACK");
@@ -147,8 +146,14 @@ public class PlayerController : Controller
 
     protected override void OnIdle()
     {
-        base.OnIdle();
-
+        // 이동 상태로 갈 지 확인
+        if (curMoveDir != EMoveDir.None)
+        {
+            State = EState.Move;
+            return;
+        }
+        
+        // 스킬 상태로 갈 지 확인
         if (Input.GetKeyDown(KeyCode.Space))
         {
             State = EState.Skill;
@@ -181,7 +186,7 @@ public class PlayerController : Controller
     {
         GameObject arrow = Managers.Resource.Instantiate("Pawn/Arrow");
         ArrowController controller = arrow.GetComponent<ArrowController>();
-        controller.CurMoveDir = _prevMoveDir;
+        controller.CurMoveDir = prevMoveDir;
         controller.Position = Position;
         
         // 쿨타임

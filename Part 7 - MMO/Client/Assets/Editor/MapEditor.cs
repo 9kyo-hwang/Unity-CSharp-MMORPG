@@ -33,7 +33,7 @@ public class MapEditor
             writer.Write($"{xMin}\n{xMax}\n{yMin}\n{yMax}\n");
             for (int y = yMax - 1; y >= yMin; --y)
             {
-                for (int x = xMin; x < xMax; ++x)
+                for (int x = xMin; x <= xMax - 1; ++x)
                 {
                     writer.Write(collisionMap.GetTile(new Vector3Int(x, y, 0)) ? "1" : "0");
                 }

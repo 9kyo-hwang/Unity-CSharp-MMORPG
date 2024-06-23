@@ -14,8 +14,8 @@ public class ArrowController : Controller
     protected override void Start()
     {
         base.Start();
-
-        switch (_prevMoveDir)
+        
+        switch (prevMoveDir)
         {
             case EMoveDir.Up:
                 transform.rotation = Quaternion.Euler(0, 0, 0);
@@ -30,6 +30,9 @@ public class ArrowController : Controller
                 transform.rotation = Quaternion.Euler(0, 0, -90);
                 break;
         }
+
+        State = EState.Move;
+        movementSpeed = 15f;
     }
 
     protected override void SetAnimation()
@@ -37,15 +40,10 @@ public class ArrowController : Controller
         
     }
 
-    protected override void OnIdle()
+    protected override void MoveToDestination()
     {
-        if (_curMoveDir == EMoveDir.None)
-        {
-            return;
-        }
-        
         Vector3Int destination = Position;
-        switch (_curMoveDir)
+        switch (curMoveDir)
         {
             case EMoveDir.Up:
                 destination += Vector3Int.up;
@@ -61,7 +59,6 @@ public class ArrowController : Controller
                 break;
         }
 
-        State = EState.Move;
         if (Managers.Map.CanGo(destination))
         {
             GameObject target = Managers.Object.Find(destination);

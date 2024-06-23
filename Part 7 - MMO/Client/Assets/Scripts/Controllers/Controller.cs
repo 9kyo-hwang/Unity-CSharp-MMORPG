@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 using static Define;
 
 public class Controller : MonoBehaviour
@@ -9,28 +10,29 @@ public class Controller : MonoBehaviour
     protected SpriteRenderer Sprite;
     public Vector3Int Position { get; set; } = Vector3Int.zero;
     
-    protected EState _state = EState.Idle;
-    public EState State
+    [SerializeField] protected EState state = EState.Idle;
+    public virtual EState State
     {
-        get => _state;
+        get => state;
         set
         {
-            if (_state == value) return;
-            _state = value;
+            if (state == value) return;
+            state = value;
             SetAnimation();
         }
     }
-    protected EMoveDir _curMoveDir = EMoveDir.Down;
-    protected EMoveDir _prevMoveDir = EMoveDir.Down;
+    
+    [SerializeField] protected EMoveDir curMoveDir = EMoveDir.Down;
+    [SerializeField] protected EMoveDir prevMoveDir = EMoveDir.Down;
     public EMoveDir CurMoveDir
     {
-        get => _curMoveDir;
+        get => curMoveDir;
         set
         {
-            if (_curMoveDir == value) return;
+            if (curMoveDir == value) return;
 
-            _curMoveDir = value;
-            if (value != EMoveDir.None) _prevMoveDir = value;
+            curMoveDir = value;
+            if (value != EMoveDir.None) prevMoveDir = value;
             SetAnimation();
         }
     }
@@ -38,7 +40,7 @@ public class Controller : MonoBehaviour
     public Vector3Int GetFrontPosition()
     {
         Vector3Int position = Position;
-        switch(_prevMoveDir)
+        switch(prevMoveDir)
         {
             case EMoveDir.Up:
                 position += Vector3Int.up;
@@ -101,7 +103,7 @@ public class Controller : MonoBehaviour
         switch (State)
         {
             case EState.Idle:
-                switch (_prevMoveDir)
+                switch (prevMoveDir)
                 {
                     case EMoveDir.Up:
                         Animator.Play("IDLE_BACK");
@@ -123,7 +125,7 @@ public class Controller : MonoBehaviour
                 }
                 break;
             case EState.Move:
-                switch (_curMoveDir)
+                switch (curMoveDir)
                 {
                     case EMoveDir.Up:
                         Animator.Play("WALK_BACK");
@@ -144,7 +146,7 @@ public class Controller : MonoBehaviour
                 }
                 break;
             case EState.Skill:
-                switch (_prevMoveDir)
+                switch (prevMoveDir)
                 {
                     case EMoveDir.Up:
                         Animator.Play("ATTACK_BACK");
@@ -172,35 +174,7 @@ public class Controller : MonoBehaviour
     // 이동 가능할 때 실제 좌표 조정
     protected virtual void OnIdle()
     {
-        // 움직이는 도중에는 애니메이션만 출력함
-        if (_curMoveDir == EMoveDir.None)
-        {
-            return;
-        }
-        
-        // 실제 플레이어 좌표는 한 번만 옮김
-        Vector3Int destination = Position;
-        switch (_curMoveDir)
-        {
-            case EMoveDir.Up:
-                destination += Vector3Int.up;
-                break;
-            case EMoveDir.Down:
-                destination += Vector3Int.down;
-                break;
-            case EMoveDir.Left:
-                destination += Vector3Int.left;
-                break;
-            case EMoveDir.Right:
-                destination += Vector3Int.right;
-                break;
-        }
 
-        State = EState.Move;
-        if (Managers.Map.CanGo(destination) && !Managers.Object.Find(destination))
-        {
-            Position = destination;
-        }
     }
 
     // 캐릭터가 서서히 움직이는 로직 처리
@@ -215,16 +189,46 @@ public class Controller : MonoBehaviour
         if (moveDir.magnitude < movementSpeed * Time.deltaTime)
         {
             transform.position = destination;
-            _state = EState.Idle;  // _state를 건드리면 상태만 변하고 animation은 변하지 않음
-            if (_curMoveDir == EMoveDir.None)  // None인 경우 Animation을 Set하도록 예외적 호출
-            {
-                SetAnimation();
-            }
+            MoveToDestination();
         }
         else
         {
             transform.position += moveDir.normalized * movementSpeed * Time.deltaTime;
             State = EState.Move;
+        }
+    }
+
+    protected virtual void MoveToDestination()
+    {
+        // 여기서 이동 방향이 None이라는 것은 실제로 상태가 Idle로 바껴야 함을 의미함
+        if (curMoveDir == EMoveDir.None)
+        {
+            State = EState.Idle;
+            return;
+        }
+        
+        // 여기는 Move 상태로 유지시켜 애니메이션을 출력해야 함
+        Vector3Int destination = Position;
+        switch (curMoveDir)
+        {
+            case EMoveDir.Up:
+                destination += Vector3Int.up;
+                break;
+            case EMoveDir.Down:
+                destination += Vector3Int.down;
+                break;
+            case EMoveDir.Left:
+                destination += Vector3Int.left;
+                break;
+            case EMoveDir.Right:
+                destination += Vector3Int.right;
+                break;
+        }
+        
+        // OnMove()에서 호출하기 때문에, 여기에 도달했다는 것은 Move 상태가 유지됨을 보장받음
+        if (Managers.Map.CanGo(destination) && !Managers.Object.Find(destination))
+        {
+            Position = destination;
         }
     }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,10 +32,26 @@ public class ObjectManager
     {
         // Controller를 소유하고 있는 객체들은 position 정보를 들고 있음.
         // 하지만 protected로 되어있기 때문에, 이에 대한 Getter가 필요함
-        return (from item in _objects
-            let controller = item.GetComponent<Controller>()
-            where controller
-            where controller.Position == position
-            select item).FirstOrDefault();
+        foreach (GameObject item in _objects)
+        {
+            Controller controller = item.GetComponent<Controller>();
+            if (!controller) continue;
+
+            if (controller.Position == position) return item;
+        }
+
+        return null;
+    }
+
+    // GameObject를 인자로 넘겨주면 결과를 bool로 반환하는 델리게이트가 인자
+    public GameObject Find(Func<GameObject, bool> condition)
+    {
+        // 넘겨준 condition에 부합하는 첫 번째 오브젝트
+        foreach (GameObject item in _objects)
+        {
+            if (condition.Invoke(item)) return item;
+        }
+
+        return null;
     }
 }
