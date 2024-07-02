@@ -37,7 +37,7 @@ public class ObjectManager
             Controller controller = item.GetComponent<Controller>();
             if (!controller) continue;
 
-            if (controller.Position == position) return item;
+            if (controller.OwnerCell == position) return item;
         }
 
         return null;

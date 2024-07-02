@@ -30,7 +30,7 @@ public class GameScene : BaseScene
                 y = Random.Range(-9, 9)
             };
 
-            monster.GetComponent<AIController>().Position = position;
+            monster.GetComponent<AIController>().OwnerCell = position;
             Managers.Object.Add(monster);
         }
     }

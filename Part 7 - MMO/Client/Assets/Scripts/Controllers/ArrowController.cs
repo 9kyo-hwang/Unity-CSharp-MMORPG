@@ -32,7 +32,7 @@ public class ArrowController : Controller
         }
 
         State = EState.Move;
-        movementSpeed = 15f;
+        MovementSpeed = 15f;
     }
 
     protected override void SetAnimation()
@@ -42,7 +42,7 @@ public class ArrowController : Controller
 
     protected override void MoveToDestination()
     {
-        Vector3Int destination = Position;
+        Vector3Int destination = OwnerCell;
         switch (curMoveDir)
         {
             case EMoveDir.Up:
@@ -64,7 +64,7 @@ public class ArrowController : Controller
             GameObject target = Managers.Object.Find(destination);
             if (!target)
             {
-                Position = destination;
+                OwnerCell = destination;
             }
             else
             {

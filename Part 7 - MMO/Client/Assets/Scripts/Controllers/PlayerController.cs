@@ -6,7 +6,7 @@ using static Define;
 
 public class PlayerController : Controller
 {
-    private Coroutine _coroutineAttack;
+    private Coroutine _skillRoutine;
     private bool _isArrowAttack = false;
     
     protected override void Awake()
@@ -157,15 +157,15 @@ public class PlayerController : Controller
         if (Input.GetKeyDown(KeyCode.Space))
         {
             State = EState.Skill;
-            //_coroutineAttack = StartCoroutine(nameof(AttackRoutine));
-            _coroutineAttack = StartCoroutine(nameof(ShootArrowRoutine));
+            //_skillRoutine = StartCoroutine(nameof(AttackRoutine));
+            _skillRoutine = StartCoroutine(nameof(ShootArrowRoutine));
         }
     }
 
     private IEnumerator AttackRoutine()
     {
         // 피격 판정
-        GameObject target = Managers.Object.Find(GetFrontPosition());
+        GameObject target = Managers.Object.Find(GetFrontCell());
         if (target)
         {
             Controller controller = target.GetComponent<Controller>();
@@ -179,7 +179,7 @@ public class PlayerController : Controller
         _isArrowAttack = false;
         yield return new WaitForSeconds(0.5f);
         State = EState.Idle;
-        _coroutineAttack = null;
+        _skillRoutine = null;
     }
 
     private IEnumerator ShootArrowRoutine()
@@ -187,12 +187,17 @@ public class PlayerController : Controller
         GameObject arrow = Managers.Resource.Instantiate("Pawn/Arrow");
         ArrowController controller = arrow.GetComponent<ArrowController>();
         controller.CurMoveDir = prevMoveDir;
-        controller.Position = Position;
+        controller.OwnerCell = OwnerCell;
         
         // 쿨타임
         _isArrowAttack = true;
         yield return new WaitForSeconds(0.5f);
         State = EState.Idle;
-        _coroutineAttack = null;
+        _skillRoutine = null;
+    }
+
+    public override void OnDamaged()
+    {
+        Debug.Log("Player Hit!");
     }
 }

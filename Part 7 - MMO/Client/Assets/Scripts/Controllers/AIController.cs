@@ -8,10 +8,13 @@ public class AIController : Controller
 {
     private Coroutine _patrolRoutine;
     private Coroutine _searchRoutine;
+    private Coroutine _skillRoutine;
     
-    [SerializeField] private Vector3Int targetCell;
-    [SerializeField] private GameObject target;
-    [SerializeField] private float searchRange = 5.0f;
+    [SerializeField] private Vector3Int _dstCell;
+    [SerializeField] private GameObject _targetObject;
+    [SerializeField] private float _searchRange = 10.0f;
+    [SerializeField] private float _skillRange = 1.0f;
+    [SerializeField] private bool _isArcher;
 
     public override EState State 
     { 
@@ -39,12 +42,23 @@ public class AIController : Controller
         
         State = EState.Idle;
         CurMoveDir = EMoveDir.None;
+
+        MovementSpeed = 3.0f;
+        if (Random.Range(0, 2) == 0)
+        {
+            _isArcher = true;
+            _skillRange = 10.0f;
+        }
+        else
+        {
+            _isArcher = false;
+            _skillRange = 1.0f;
+        }
     }
 
     protected override void Start()
     {
         base.Start();
-        movementSpeed = 3.0f;
     }
 
     protected override void Update()
@@ -73,46 +87,39 @@ public class AIController : Controller
     protected override void MoveToDestination()
     {
         // TODO: A*를 이용한 길찾기
-        Vector3Int dstCell = targetCell;
-        if (target)
+        Vector3Int dstCell = _dstCell;
+        if (_targetObject)
         {
-            dstCell = target.GetComponent<Controller>().Position;
+            dstCell = _targetObject.GetComponent<Controller>().OwnerCell;
+
+            // 거리 추출
+            Vector3Int dir2Dst = dstCell - OwnerCell;
+            if (dir2Dst.magnitude <= _skillRange && (dir2Dst.x == 0 || dir2Dst.y == 0))
+            {
+                CurMoveDir = GetMoveDirFrom(dir2Dst);
+                State = EState.Skill;
+                _skillRoutine = _isArcher
+                    ? StartCoroutine(nameof(ShootArrowRoutine))
+                    : StartCoroutine(nameof(AttackRoutine));
+                return;
+            }
         }
 
-        List<Vector3Int> path = Managers.Map.FindPath(Position, dstCell, true);
-        if (path.Count < 2 || (target && path.Count > 10))  // 길을 못찾았거나 캐릭터가 찰나에 범위를 벗어난 경우
+        List<Vector3Int> path = Managers.Map.FindPath(OwnerCell, dstCell, true);
+        if (path.Count < 2 || (_targetObject && path.Count > 20))  // 길을 못찾았거나 캐릭터가 찰나에 범위를 벗어난 경우
         {
-            target = null;
+            _targetObject = null;
             State = EState.Idle;
             return;
         }
 
-        Vector3Int next = path[1];  // 0: 현재 위치
-        Vector3Int dstDir = next - Position;
-        if (dstDir.x > 0)
-        {
-            CurMoveDir = EMoveDir.Right;
-        }
-        else if (dstDir.x < 0)
-        {
-            CurMoveDir = EMoveDir.Left;
-        }
-        else if (dstDir.y > 0)
-        {
-            CurMoveDir = EMoveDir.Up;
-        }
-        else if (dstDir.y < 0)
-        {
-            CurMoveDir = EMoveDir.Down;
-        }
-        else
-        {
-            CurMoveDir = EMoveDir.None;
-        }
+        Vector3Int nextCell = path[1];  // 0: 현재 위치
+        Vector3Int dir2Next = nextCell - OwnerCell;
+        CurMoveDir = GetMoveDirFrom(dir2Next);
         
-        if (Managers.Map.CanGo(next) && !Managers.Object.Find(next))
+        if (Managers.Map.CanGo(nextCell) && !Managers.Object.Find(nextCell))
         {
-            Position = next;
+            OwnerCell = nextCell;
         }
         else  // 갈 수 없는 위치라면 즉시 Idle로 change
         {
@@ -145,12 +152,12 @@ public class AIController : Controller
         {
             int x = Random.Range(-5, 6);
             int y = Random.Range(-5, 6);
-            Vector3Int dst = Position + new Vector3Int(x, y, 0);
+            Vector3Int dst = OwnerCell + new Vector3Int(x, y, 0);
 
             if (Managers.Map.CanGo(dst) && !Managers.Object.Find(dst))
             {
                 // AI는 한 칸씩 움직이지 않고 목적지까지 한 번에 이동함. 따라서 이를 저장할 변수 필요
-                targetCell = dst;
+                _dstCell = dst;
                 State = EState.Move;
                 yield break;  // Coroutine을 완전히 종료하기 위해
             }
@@ -167,23 +174,23 @@ public class AIController : Controller
             yield return new WaitForSeconds(1f);
             
             // Search Target Check
-            if (target)
+            if (_targetObject)
             {
                 continue;
             }
             
             // ObjectManager에 탐색 조건을 매개변수로 넘겨주는 새로운 시그니처의 Find 함수 추가
-            target = Managers.Object.Find(item =>
+            _targetObject = Managers.Object.Find(target =>
             {
-                PlayerController controller = item.GetComponent<PlayerController>();
+                PlayerController controller = target.GetComponent<PlayerController>();
                 if (!controller)
                 {
                     return false;
                 }
 
                 // 탐색 범위 내플레이어인 지 확인
-                Vector3Int dir = controller.Position - Position;
-                if (dir.magnitude > searchRange)
+                Vector3Int dir = controller.OwnerCell - OwnerCell;
+                if (dir.magnitude > _searchRange)
                 {
                     return false;
                 }
@@ -191,5 +198,37 @@ public class AIController : Controller
                 return true;
             });
         }
+    }
+
+    private IEnumerator AttackRoutine()
+    {
+        // 피격 판정
+        GameObject target = Managers.Object.Find(GetFrontCell());
+        if (target)
+        {
+            Controller controller = target.GetComponent<Controller>();
+            if (controller)
+            {
+                controller.OnDamaged();
+            }
+        }
+
+        // 쿨타임
+        yield return new WaitForSeconds(0.5f);
+        State = EState.Move;
+        _skillRoutine = null;
+    }
+
+    private IEnumerator ShootArrowRoutine()
+    {
+        GameObject arrow = Managers.Resource.Instantiate("Pawn/Arrow");
+        ArrowController controller = arrow.GetComponent<ArrowController>();
+        controller.CurMoveDir = prevMoveDir;
+        controller.OwnerCell = OwnerCell;
+
+        // 쿨타임
+        yield return new WaitForSeconds(0.5f);
+        State = EState.Move;
+        _skillRoutine = null;
     }
 }

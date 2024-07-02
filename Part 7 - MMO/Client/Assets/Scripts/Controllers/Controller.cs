@@ -5,10 +5,10 @@ using static Define;
 
 public class Controller : MonoBehaviour
 {
-    [SerializeField] protected float movementSpeed = 5.0f;
+    [SerializeField] protected float MovementSpeed = 5.0f;
     protected Animator Animator;
     protected SpriteRenderer Sprite;
-    public Vector3Int Position { get; set; } = Vector3Int.zero;
+    public Vector3Int OwnerCell { get; set; } = Vector3Int.zero;
     
     [SerializeField] protected EState state = EState.Idle;
     public virtual EState State
@@ -37,26 +37,47 @@ public class Controller : MonoBehaviour
         }
     }
 
-    public Vector3Int GetFrontPosition()
+    public EMoveDir GetMoveDirFrom(Vector3Int dir)
     {
-        Vector3Int position = Position;
+        switch (dir.x)
+        {
+            case > 0:
+                return EMoveDir.Right;
+            case < 0:
+                return EMoveDir.Left;
+        }
+
+        switch (dir.y)
+        {
+            case > 0:
+                return EMoveDir.Up;
+            case < 0:
+                return EMoveDir.Down;
+        }
+
+        return EMoveDir.None;
+    }
+
+    public Vector3Int GetFrontCell()
+    {
+        Vector3Int cell = OwnerCell;
         switch(prevMoveDir)
         {
             case EMoveDir.Up:
-                position += Vector3Int.up;
+                cell += Vector3Int.up;
                 break;
             case EMoveDir.Down:
-                position += Vector3Int.down;
+                cell += Vector3Int.down;
                 break;
             case EMoveDir.Left:
-                position += Vector3Int.left;
+                cell += Vector3Int.left;
                 break;
             case EMoveDir.Right:
-                position += Vector3Int.right;
+                cell += Vector3Int.right;
                 break;
         }
 
-        return position;
+        return cell;
     }
 
     private readonly Vector3 _cellOffset = new Vector3(0.5f, 0, 0);
@@ -70,7 +91,7 @@ public class Controller : MonoBehaviour
     protected virtual void Start()
     {
         // 초기 위치 세팅
-        transform.position = Managers.Map.ActiveMap.CellToWorld(Position) + _cellOffset;
+        transform.position = Managers.Map.ActiveMap.CellToWorld(OwnerCell) + _cellOffset;
     }
     
     protected virtual void Update()
@@ -181,19 +202,19 @@ public class Controller : MonoBehaviour
     protected virtual void OnMove()
     {
         // 클라이언트에서 캐릭터가 서서히 움직이는 모습 구현
-        Vector3 destination = Managers.Map.ActiveMap.CellToWorld(Position) + _cellOffset;
-        Vector3 moveDir = destination - transform.position;
+        Vector3 dstCell = Managers.Map.ActiveMap.CellToWorld(OwnerCell) + _cellOffset;
+        Vector3 moveDir = dstCell - transform.position;
         
         // 도착 여부 체크
         // 벡터 크기 == 거리. 즉 거의 다 도달해서 남은 거리가 매우 작다면
-        if (moveDir.magnitude < movementSpeed * Time.deltaTime)
+        if (moveDir.magnitude < MovementSpeed * Time.deltaTime)
         {
-            transform.position = destination;
+            transform.position = dstCell;
             MoveToDestination();
         }
         else
         {
-            transform.position += moveDir.normalized * movementSpeed * Time.deltaTime;
+            transform.position += MovementSpeed * Time.deltaTime * moveDir.normalized;
             State = EState.Move;
         }
     }
@@ -208,27 +229,27 @@ public class Controller : MonoBehaviour
         }
         
         // 여기는 Move 상태로 유지시켜 애니메이션을 출력해야 함
-        Vector3Int destination = Position;
+        Vector3Int dstCell = OwnerCell;
         switch (curMoveDir)
         {
             case EMoveDir.Up:
-                destination += Vector3Int.up;
+                dstCell += Vector3Int.up;
                 break;
             case EMoveDir.Down:
-                destination += Vector3Int.down;
+                dstCell += Vector3Int.down;
                 break;
             case EMoveDir.Left:
-                destination += Vector3Int.left;
+                dstCell += Vector3Int.left;
                 break;
             case EMoveDir.Right:
-                destination += Vector3Int.right;
+                dstCell += Vector3Int.right;
                 break;
         }
         
         // OnMove()에서 호출하기 때문에, 여기에 도달했다는 것은 Move 상태가 유지됨을 보장받음
-        if (Managers.Map.CanGo(destination) && !Managers.Object.Find(destination))
+        if (Managers.Map.CanGo(dstCell) && !Managers.Object.Find(dstCell))
         {
-            Position = destination;
+            OwnerCell = dstCell;
         }
     }
 
