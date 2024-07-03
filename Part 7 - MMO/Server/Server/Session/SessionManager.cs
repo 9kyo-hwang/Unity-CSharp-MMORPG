@@ -6,12 +6,11 @@ namespace Server
 {
 	class SessionManager
 	{
-		static SessionManager _session = new SessionManager();
-		public static SessionManager Instance { get { return _session; } }
+        public static SessionManager Instance { get; } = new SessionManager();
 
-		int _sessionId = 0;
-		Dictionary<int, ClientSession> _sessions = new Dictionary<int, ClientSession>();
-		object _lock = new object();
+        int _sessionId = 0;
+        private Dictionary<int, ClientSession> _sessions = new Dictionary<int, ClientSession>();
+        private object _lock = new object();
 
 		public ClientSession Generate()
 		{
@@ -19,9 +18,11 @@ namespace Server
 			{
 				int sessionId = ++_sessionId;
 
-				ClientSession session = new ClientSession();
-				session.SessionId = sessionId;
-				_sessions.Add(sessionId, session);
+				ClientSession session = new ClientSession
+                {
+                    SessionId = sessionId
+                };
+                _sessions.Add(sessionId, session);
 
 				Console.WriteLine($"Connected : {sessionId}");
 
@@ -33,8 +34,7 @@ namespace Server
 		{
 			lock (_lock)
 			{
-				ClientSession session = null;
-				_sessions.TryGetValue(id, out session);
+                _sessions.TryGetValue(id, out var session);
 				return session;
 			}
 		}

@@ -4,23 +4,23 @@ using UnityEngine;
 
 public class Define
 {
-    public enum EState
-    {
+    public enum CreatureState
+	{
         Idle,
-        Move,
+        Moving,
         Skill,
         Dead,
-    }
-    
-    public enum EMoveDir
-    {
+	}
+
+    public enum MoveDir
+	{
         None,
         Up,
         Down,
         Left,
-        Right
-    }
-    
+        Right,
+	}
+
     public enum Scene
     {
         Unknown,

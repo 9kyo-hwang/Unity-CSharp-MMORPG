@@ -8,8 +8,8 @@ namespace ServerCore
 {
 	public class Listener
 	{
-		Socket _listenSocket;
-		Func<Session> _sessionFactory;
+        private Socket _listenSocket;
+        private Func<Session> _sessionFactory;
 
 		public void Init(IPEndPoint endPoint, Func<Session> sessionFactory, int register = 10, int backlog = 100)
 		{
@@ -26,12 +26,12 @@ namespace ServerCore
 			for (int i = 0; i < register; i++)
 			{
 				SocketAsyncEventArgs args = new SocketAsyncEventArgs();
-				args.Completed += new EventHandler<SocketAsyncEventArgs>(OnAcceptCompleted);
+				args.Completed += OnAcceptCompleted;
 				RegisterAccept(args);
 			}
 		}
 
-		void RegisterAccept(SocketAsyncEventArgs args)
+        private void RegisterAccept(SocketAsyncEventArgs args)
 		{
 			args.AcceptSocket = null;
 
@@ -40,7 +40,7 @@ namespace ServerCore
 				OnAcceptCompleted(null, args);
 		}
 
-		void OnAcceptCompleted(object sender, SocketAsyncEventArgs args)
+        private void OnAcceptCompleted(object sender, SocketAsyncEventArgs args)
 		{
 			if (args.SocketError == SocketError.Success)
 			{

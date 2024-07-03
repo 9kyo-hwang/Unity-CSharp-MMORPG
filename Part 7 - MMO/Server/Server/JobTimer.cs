@@ -7,27 +7,27 @@ namespace Server
 {
 	struct JobTimerElem : IComparable<JobTimerElem>
 	{
-		public int execTick; // 실행 시간
-		public Action action;
+		public int ExecTick; // 실행 시간
+		public Action Action;
 
 		public int CompareTo(JobTimerElem other)
 		{
-			return other.execTick - execTick;
+			return other.ExecTick - ExecTick;
 		}
 	}
 
 	class JobTimer
 	{
-		PriorityQueue<JobTimerElem> _pq = new PriorityQueue<JobTimerElem>();
-		object _lock = new object();
+        private PriorityQueue<JobTimerElem> _pq = new PriorityQueue<JobTimerElem>();
+        private object _lock = new object();
 
 		public static JobTimer Instance { get; } = new JobTimer();
 
 		public void Push(Action action, int tickAfter = 0)
 		{
 			JobTimerElem job;
-			job.execTick = System.Environment.TickCount + tickAfter;
-			job.action = action;
+			job.ExecTick = System.Environment.TickCount + tickAfter;
+			job.Action = action;
 
 			lock (_lock)
 			{
@@ -49,13 +49,13 @@ namespace Server
 						break;
 
 					job = _pq.Peek();
-					if (job.execTick > now)
+					if (job.ExecTick > now)
 						break;
 
 					_pq.Pop();
 				}
 
-				job.action.Invoke();
+				job.Action.Invoke();
 			}
 		}
 	}

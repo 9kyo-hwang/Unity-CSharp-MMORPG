@@ -8,7 +8,7 @@ namespace ServerCore
 {
 	public class Connector
 	{
-		Func<Session> _sessionFactory;
+        private Func<Session> _sessionFactory;
 
 		public void Connect(IPEndPoint endPoint, Func<Session> sessionFactory, int count = 1)
 		{
@@ -27,10 +27,9 @@ namespace ServerCore
 			}
 		}
 
-		void RegisterConnect(SocketAsyncEventArgs args)
+        private void RegisterConnect(SocketAsyncEventArgs args)
 		{
-			Socket socket = args.UserToken as Socket;
-			if (socket == null)
+            if (!(args.UserToken is Socket socket))
 				return;
 
 			bool pending = socket.ConnectAsync(args);
@@ -38,7 +37,7 @@ namespace ServerCore
 				OnConnectCompleted(null, args);
 		}
 
-		void OnConnectCompleted(object sender, SocketAsyncEventArgs args)
+        private void OnConnectCompleted(object sender, SocketAsyncEventArgs args)
 		{
 			if (args.SocketError == SocketError.Success)
 			{

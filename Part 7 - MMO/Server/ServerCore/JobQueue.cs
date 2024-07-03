@@ -11,9 +11,9 @@ namespace ServerCore
 
 	public class JobQueue : IJobQueue
 	{
-		Queue<Action> _jobQueue = new Queue<Action>();
-		object _lock = new object();
-		bool _flush = false;
+        private Queue<Action> _jobQueue = new Queue<Action>();
+        private object _lock = new object();
+        private bool _flush = false;
 
 		public void Push(Action job)
 		{
@@ -30,7 +30,7 @@ namespace ServerCore
 				Flush();
 		}
 
-		void Flush()
+        private void Flush()
 		{
 			while (true)
 			{
@@ -42,7 +42,7 @@ namespace ServerCore
 			}
 		}
 
-		Action Pop()
+        private Action Pop()
 		{
 			lock (_lock)
 			{
