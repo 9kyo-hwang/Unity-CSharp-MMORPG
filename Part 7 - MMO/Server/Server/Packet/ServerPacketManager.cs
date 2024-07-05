@@ -7,19 +7,19 @@ using System.Collections.Generic;
 class PacketManager
 {
 	#region Singleton
+	public static PacketManager Instance { get; } = new PacketManager();
+	#endregion
 
-    public static PacketManager Instance { get; } = new PacketManager();
-
-    #endregion
-
-    private PacketManager()
+	private PacketManager()
 	{
 		Register();
 	}
 
-	private Dictionary<ushort, Action<PacketSession, ArraySegment<byte>, ushort>> _onRecv = new Dictionary<ushort, Action<PacketSession, ArraySegment<byte>, ushort>>();
-	private Dictionary<ushort, Action<PacketSession, IMessage>> _handler = new Dictionary<ushort, Action<PacketSession, IMessage>>();
-		
+    private Dictionary<ushort, Action<PacketSession, ArraySegment<byte>, ushort>> _onRecv = new Dictionary<ushort, Action<PacketSession, ArraySegment<byte>, ushort>>();
+    private Dictionary<ushort, Action<PacketSession, IMessage>> _handler = new Dictionary<ushort, Action<PacketSession, IMessage>>();
+	
+    public Action<PacketSession, IMessage, ushort> CustomHandler { get; set; }
+
 	public void Register()
 	{		
 		_onRecv.Add((ushort)MsgId.CMove, MakePacket<C_Move>);
@@ -41,18 +41,23 @@ class PacketManager
         }
 	}
 
-	private void MakePacket<T>(PacketSession session, ArraySegment<byte> buffer, ushort id) where T : IMessage, new()
+	void MakePacket<T>(PacketSession session, ArraySegment<byte> buffer, ushort id) where T : IMessage, new()
 	{
 		T packet = new T();
 		packet.MergeFrom(buffer.Array, buffer.Offset + 4, buffer.Count - 4);
-        if (_handler.TryGetValue(id, out var action))
+
+        if(CustomHandler != null)
+        {
+            CustomHandler.Invoke(session, packet, id);
+        }
+        else if (_handler.TryGetValue(id, out var action))
         {
             action.Invoke(session, packet);
         }
 	}
 
 	public Action<PacketSession, IMessage> GetPacketHandler(ushort id)
-    {
+	{
         return _handler.GetValueOrDefault(id);
-    }
+	}
 }
