@@ -8,46 +8,53 @@ using ServerCore;
 using System.Net;
 using Google.Protobuf.Protocol;
 using Google.Protobuf;
+using Server.Game;
 
 namespace Server
 {
-	class ClientSession : PacketSession
+	public class ClientSession : PacketSession
 	{
 		public int SessionId { get; set; }
+		public Player Player { get; set; }
+
+        public void Send(IMessage packet)
+        {
+            string msgName = packet.Descriptor.Name.Replace("_", string.Empty);  // S_Chat -> SChat
+            MsgId msgId = (MsgId)Enum.Parse(typeof(MsgId), msgName);  // msgName과 같은 enum 반환
+			// 여기서 id가 안찾아지면 정의 부분에서 문제 존재 -> Exception Handling 필요
+
+            ushort size = (ushort)packet.CalculateSize();
+            byte[] sendBuffer = new byte[size + 4];
+			Array.Copy(BitConverter.GetBytes((ushort)(size + 4)), 0, sendBuffer, 0, sizeof(ushort));
+			Array.Copy(BitConverter.GetBytes((ushort)msgId), 0, sendBuffer, 2, sizeof(ushort));
+            Array.Copy(packet.ToByteArray(), 0, sendBuffer, 4, size);
+
+            Send(new ArraySegment<byte>(sendBuffer));
+        }
 
 		public override void OnConnected(EndPoint endPoint)
 		{
 			Console.WriteLine($"OnConnected : {endPoint}");
 
-			// PROTO Test
-			S_Chat chat = new S_Chat()
-			{
-				Context = "안녕하세요"
-			};
+            Player = PlayerManager.Instance.Add();
+            {
+                Player.Info.Name = $"Player_{Player.Info.PlayerId}";
+                Player.Info.PosX = 0;
+				Player.Info.PosY = 0;
+                Player.Session = this;
+            }
+			GameRoomManager.Instance.Find(1).Enter(Player);
+        }
 
-			ushort size = (ushort)chat.CalculateSize();
-			byte[] sendBuffer = new byte[size + 4];
-			Array.Copy(BitConverter.GetBytes(size + 4), 0, sendBuffer, 0, sizeof(ushort));
-			ushort protocolId = (ushort)MsgId.SChat;
-			Array.Copy(BitConverter.GetBytes(protocolId), 0, sendBuffer, 2, sizeof(ushort));
-			Array.Copy(chat.ToByteArray(), 0, sendBuffer, 4, size);
-
-			Send(new ArraySegment<byte>(sendBuffer));
-
-			//S_Chat chat2 = new S_Chat();
-			//chat2.MergeFrom(sendBuffer, 4, sendBuffer.Length - 4);
-			//////////////////////////
-			//////////////////////////
-			//Program.Room.Push(() => Program.Room.Enter(this));
-		}
-
-		public override void OnReceivePacket(ArraySegment<byte> buffer)
+		public override void OnRecvPacket(ArraySegment<byte> buffer)
 		{
-			PacketManager.Instance.OnReceivePacket(this, buffer);
+			PacketManager.Instance.OnRecvPacket(this, buffer);
 		}
 
 		public override void OnDisconnected(EndPoint endPoint)
 		{
+			GameRoomManager.Instance.Find(1).Leave(Player.Info.PlayerId);
+
 			SessionManager.Instance.Remove(this);
 
 			Console.WriteLine($"OnDisconnected : {endPoint}");

@@ -4,14 +4,14 @@ using System.Text;
 
 namespace ServerCore
 {
-	public class ReceiveBuffer
+	public class RecvBuffer
 	{
 		// [r][][w][][][][][][][]
         private ArraySegment<byte> _buffer;
         private int _readPos;
         private int _writePos;
 
-		public ReceiveBuffer(int bufferSize)
+		public RecvBuffer(int bufferSize)
 		{
 			_buffer = new ArraySegment<byte>(new byte[bufferSize], 0, bufferSize);
 		}

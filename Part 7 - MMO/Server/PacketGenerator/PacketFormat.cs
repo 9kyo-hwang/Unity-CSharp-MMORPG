@@ -17,7 +17,7 @@ using System.Collections.Generic;
 class PacketManager
 {{
 	#region Singleton
-	public static PacketManager Instance { get; } = new PacketManager();
+	public static PacketManager Instance {{ get; }} = new PacketManager();
 	#endregion
 
 	private PacketManager()
@@ -25,14 +25,14 @@ class PacketManager
 		Register();
 	}}
 
-    private Dictionary<ushort, Action<PacketSession, ArraySegment<byte>, ushort>> _onReceive = new Dictionary<ushort, Action<PacketSession, ArraySegment<byte>, ushort>>();
+    private Dictionary<ushort, Action<PacketSession, ArraySegment<byte>, ushort>> _onRecv = new Dictionary<ushort, Action<PacketSession, ArraySegment<byte>, ushort>>();
     private Dictionary<ushort, Action<PacketSession, IMessage>> _handler = new Dictionary<ushort, Action<PacketSession, IMessage>>();
 	
 	public void Register()
 	{{{0}
 	}}
 
-	public void OnReceivePacket(PacketSession session, ArraySegment<byte> buffer)
+	public void OnRecvPacket(PacketSession session, ArraySegment<byte> buffer)
 	{{
 		ushort count = 0;
 
@@ -41,16 +41,20 @@ class PacketManager
 		ushort id = BitConverter.ToUInt16(buffer.Array, buffer.Offset + count);
 		count += 2;
 
-        if (_onReceive.TryGetValue(id, out var action))
-			action.Invoke(session, buffer, id);
+        if (_onRecv.TryGetValue(id, out var action))
+        {{
+            action.Invoke(session, buffer, id);
+        }}
 	}}
 
 	void MakePacket<T>(PacketSession session, ArraySegment<byte> buffer, ushort id) where T : IMessage, new()
 	{{
-		T pkt = new T();
-		pkt.MergeFrom(buffer.Array, buffer.Offset + 4, buffer.Count - 4);
-		if (_handler.TryGetValue(id, out var action))
-			action.Invoke(session, pkt);
+		T packet = new T();
+		packet.MergeFrom(buffer.Array, buffer.Offset + 4, buffer.Count - 4);
+        if (_handler.TryGetValue(id, out var action))
+        {{
+            action.Invoke(session, packet);
+        }}
 	}}
 
 	public Action<PacketSession, IMessage> GetPacketHandler(ushort id)
@@ -63,7 +67,7 @@ class PacketManager
 		// {1} 패킷 이름
 		public static string ManagerRegisterFormat =
 @"		
-		_onReceive.Add((ushort)MsgId.{0}, MakePacket<{1}>);
+		_onRecv.Add((ushort)MsgId.{0}, MakePacket<{1}>);
 		_handler.Add((ushort)MsgId.{0}, PacketHandler.{1}Handler);";
 
 	}

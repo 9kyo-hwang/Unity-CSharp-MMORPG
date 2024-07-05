@@ -1,6 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEditor.Rendering;
 using UnityEngine;
 using static Define;
 
@@ -155,12 +153,8 @@ public class PlayerController : CreatureController
 	{
 		// 피격 판정
 		GameObject go = Managers.Object.Find(GetFrontCellPos());
-		if (go != null)
-		{
-			CreatureController cc = go.GetComponent<CreatureController>();
-			if (cc != null)
-				cc.OnDamaged();
-		}
+        CreatureController cc = go?.GetComponent<CreatureController>();
+		cc?.OnDamaged();
 
 		// 대기 시간
 		_rangedSkill = false;

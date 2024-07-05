@@ -17,16 +17,16 @@ class PacketManager
 		Register();
 	}
 
-    private Dictionary<ushort, Action<PacketSession, ArraySegment<byte>, ushort>> _onReceive = new Dictionary<ushort, Action<PacketSession, ArraySegment<byte>, ushort>>();
-    private Dictionary<ushort, Action<PacketSession, IMessage>> _handler = new Dictionary<ushort, Action<PacketSession, IMessage>>();
+	private Dictionary<ushort, Action<PacketSession, ArraySegment<byte>, ushort>> _onRecv = new Dictionary<ushort, Action<PacketSession, ArraySegment<byte>, ushort>>();
+	private Dictionary<ushort, Action<PacketSession, IMessage>> _handler = new Dictionary<ushort, Action<PacketSession, IMessage>>();
 		
 	public void Register()
 	{		
-		_onReceive.Add((ushort)MsgId.CChat, MakePacket<C_Chat>);
-		_handler.Add((ushort)MsgId.CChat, PacketHandler.C_ChatHandler);
+		_onRecv.Add((ushort)MsgId.CMove, MakePacket<C_Move>);
+		_handler.Add((ushort)MsgId.CMove, PacketHandler.C_MoveHandler);
 	}
 
-	public void OnReceivePacket(PacketSession session, ArraySegment<byte> buffer)
+	public void OnRecvPacket(PacketSession session, ArraySegment<byte> buffer)
 	{
 		ushort count = 0;
 
@@ -35,16 +35,20 @@ class PacketManager
 		ushort id = BitConverter.ToUInt16(buffer.Array, buffer.Offset + count);
 		count += 2;
 
-        if (_onReceive.TryGetValue(id, out var action))
-			action.Invoke(session, buffer, id);
+        if (_onRecv.TryGetValue(id, out var action))
+        {
+            action.Invoke(session, buffer, id);
+        }
 	}
 
-	void MakePacket<T>(PacketSession session, ArraySegment<byte> buffer, ushort id) where T : IMessage, new()
+	private void MakePacket<T>(PacketSession session, ArraySegment<byte> buffer, ushort id) where T : IMessage, new()
 	{
-		T pkt = new T();
-		pkt.MergeFrom(buffer.Array, buffer.Offset + 4, buffer.Count - 4);
+		T packet = new T();
+		packet.MergeFrom(buffer.Array, buffer.Offset + 4, buffer.Count - 4);
         if (_handler.TryGetValue(id, out var action))
-			action.Invoke(session, pkt);
+        {
+            action.Invoke(session, packet);
+        }
 	}
 
 	public Action<PacketSession, IMessage> GetPacketHandler(ushort id)
